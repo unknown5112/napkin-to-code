@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Napkin to Code 🪄</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4 md:p-8 font-sans flex flex-col items-center">
+    
+    <div class="max-w-5xl w-full">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+                Napkin-to-Code 🪄
+            </h1>
+            <p class="text-gray-400 text-base md:text-lg">Draw a wireframe, upload it, and watch AI write your code.</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl mb-8 border border-gray-700">
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden"/>
+            <input type="file" id="galleryInput" accept="image/*" class="hidden"/>
+
+            <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                <button onclick="document.getElementById('cameraInput').click()" 
+                    class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-semibold transition-all">
+                    📸 Take a Photo
+                </button>
+                <button onclick="document.getElementById('galleryInput').click()" 
+                    class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-semibold transition-all">
+                    📁 Choose from Gallery
+                </button>
+            </div>
+
+            <p id="fileNameDisplay" class="text-sm text-blue-400 text-center mb-6 hidden"></p>
+            
+            <button id="generateBtn" class="bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-4 rounded-lg font-bold w-full text-lg hover:opacity-90 transition-all">
+                Generate UI 🚀
+            </button>
+        </div>
+
+        <!-- Loader -->
+        <div id="loader" class="hidden text-center mb-8">
+            <div class="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+            <p class="text-blue-400 animate-pulse font-semibold">AI is analyzing your sketch and writing code...</p>
+        </div>
+
+        <!-- Output Section with TABS -->
+        <div id="outputSection" class="hidden mb-10">
+            <!-- Tab Buttons -->
+            <div class="flex space-x-2 mb-2">
+                <button id="tabPreviewBtn" class="bg-blue-600 px-6 py-2 rounded-t-lg font-bold text-white transition-colors">Live Preview</button>
+                <button id="tabCodeBtn" class="bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-t-lg font-bold text-gray-300 transition-colors">Raw Code</button>
+            </div>
+
+            <!-- Live Preview Container -->
+            <div id="previewContainer" class="bg-white w-full rounded-b-xl rounded-tr-xl overflow-hidden border-4 border-gray-700 relative shadow-2xl" style="height: 70vh; min-height: 500px;">
+                <iframe id="previewFrame" class="w-full h-full bg-white"></iframe>
+            </div>
+
+            <!-- Raw Code Container -->
+            <div id="codeContainer" class="hidden bg-gray-950 w-full rounded-b-xl rounded-tr-xl border-4 border-gray-700 p-4 shadow-2xl overflow-y-auto" style="height: 70vh; min-height: 500px;">
+                <button id="copyBtn" class="float-right bg-gray-700 hover:bg-gray-600 text-xs px-3 py-1 rounded mb-2">Copy Code</button>
+                <pre><code id="codeBlock" class="text-green-400 text-sm font-mono whitespace-pre-wrap"></code></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CRITICAL: Yahan apna Uvicorn (Port 8000) wala link paste kar dena jismein end mein /generate-ui ho
+        const BACKEND_URL = "https://shiny-happiness-rr7467g55x724w7-8000.app.github.dev/generate-ui";
+        let selectedFile = null;
+
+        // Input Handlers
+        document.getElementById('cameraInput').addEventListener('change', e => { if(e.target.files.length) { selectedFile = e.target.files[0]; showFileName("Camera Photo Selected"); }});
+        document.getElementById('galleryInput').addEventListener('change', e => { if(e.target.files.length) { selectedFile = e.target.files[0]; showFileName(selectedFile.name); }});
+        function showFileName(text) { document.getElementById('fileNameDisplay').innerText = "Selected: " + text; document.getElementById('fileNameDisplay').classList.remove('hidden'); }
+
+        // Tab Switching Logic
+        const tabPreviewBtn = document.getElementById('tabPreviewBtn');
+        const tabCodeBtn = document.getElementById('tabCodeBtn');
+        const previewContainer = document.getElementById('previewContainer');
+        const codeContainer = document.getElementById('codeContainer');
+
+        tabPreviewBtn.addEventListener('click', () => {
+            previewContainer.classList.remove('hidden');
+            codeContainer.classList.add('hidden');
+            tabPreviewBtn.className = "bg-blue-600 px-6 py-2 rounded-t-lg font-bold text-white transition-colors";
+            tabCodeBtn.className = "bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-t-lg font-bold text-gray-300 transition-colors";
+        });
+
+        tabCodeBtn.addEventListener('click', () => {
+            codeContainer.classList.remove('hidden');
+            previewContainer.classList.add('hidden');
+            tabCodeBtn.className = "bg-blue-600 px-6 py-2 rounded-t-lg font-bold text-white transition-colors";
+            tabPreviewBtn.className = "bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-t-lg font-bold text-gray-300 transition-colors";
+        });
+
+        // Copy Code Button
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(document.getElementById('codeBlock').innerText);
+            document.getElementById('copyBtn').innerText = "Copied!";
+            setTimeout(() => document.getElementById('copyBtn').innerText = "Copy Code", 2000);
+        });
+
+        // Generate Logic
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            // PROFESSIONAL ENGLISH ALERTS
+            if (!selectedFile) return alert('Please upload a wireframe image first.');
+
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('outputSection').classList.add('hidden');
+            
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+
+            try {
+                const response = await fetch(BACKEND_URL, { method: 'POST', body: formData });
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('outputSection').classList.remove('hidden');
+                    
+                    // Inject script to disable link clicks
+                    const disableLinksScript = `<script>
+                        document.addEventListener('click', function(e) {
+                            const link = e.target.closest('a');
+                            if (link) { e.preventDefault(); console.log('Link click disabled in preview.'); }
+                        });
+                    <\/script>`;
+                    
+                    document.getElementById('previewFrame').srcdoc = data.code + disableLinksScript;
+                    document.getElementById('codeBlock').innerText = data.code;
+                    tabPreviewBtn.click();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (error) {
+                // PROFESSIONAL ERROR ALERT
+                alert("Failed to connect to the backend. Please check your backend URL and ensure the server is running.");
+            } finally {
+                document.getElementById('loader').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
