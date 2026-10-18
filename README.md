@@ -48,6 +48,6 @@
 
 ## 👨‍💻 Developed By
 
-**Vishesh Choudhary** 
-*B.Tech First Year (CSE - Artificial Intelligence & Machine Learning)*
+**Vishesh Choudhary** <br>
+*B.Tech First Year (CSE - Artificial Intelligence & Machine Learning)* <br>
 Passionate about building AI tools and exploring the intersection of web development and machine learning.
