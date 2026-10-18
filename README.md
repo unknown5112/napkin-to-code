@@ -7,7 +7,7 @@
 
 **Napkin-to-Code** is an AI-powered developer tool that transforms hand-drawn wireframes and paper sketches into fully functional, responsive, and production-ready HTML/Tailwind CSS code in seconds.
 
-🔗 **[Live Demo](https://unknown5112.github.io/napkin-to-code/)** *(Insert your exact GitHub pages link here)*
+🔗 **[Live Demo]** *(https://unknown5112.github.io/napkin-to-code/)*
 
 ---
 
