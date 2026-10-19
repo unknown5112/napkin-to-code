@@ -15,7 +15,7 @@ load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 # FIXED: Changed from nonexistent 3.5 to the actual fast model
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-3.5-flash')
 
 # Initialize FastAPI App
 app = FastAPI()
