@@ -1,67 +1,76 @@
 import os
-import io
 import base64
-from fastapi import FastAPI
+import google.generativeai as genai
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from dotenv import load_dotenv
-import google.generativeai as genai
-from PIL import Image
 
-# Load environment variables
-load_dotenv()
-
-# Configure Gemini
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-# FIXED: Changed from nonexistent 3.5 to the actual fast model
-model = genai.GenerativeModel('gemini-3.5-flash')
-
-# Initialize FastAPI App
 app = FastAPI()
 
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 1. Create a schema to receive JSON from frontend
-class ImageRequest(BaseModel):
+# Render environment variables se saari keys uthayega
+KEYS_ENV = os.getenv("GEMINI_API_KEYS", "")
+API_KEYS = [k.strip() for k in KEYS_ENV.split(",") if k.strip()]
+
+class UIRequest(BaseModel):
     image: str
 
 @app.post("/generate-ui")
-async def generate_ui(request: ImageRequest):
-    try:
-        # 2. Decode Base64 string back into image bytes
-        # Frontend sends "data:image/jpeg;base64,iVBORw0KG..." so we split by comma
-        base64_data = request.image.split(",")[1] if "," in request.image else request.image
-        image_bytes = base64.b64decode(base64_data)
-        
-        # 3. Convert to PIL Image
-        img = Image.open(io.BytesIO(image_bytes))
+async def generate_ui(request: UIRequest):
+    if not API_KEYS:
+        raise HTTPException(status_code=500, detail="API keys backend mein configure nahi hain.")
 
-        # SPEED OPTIMIZATION
-        img.thumbnail((1024, 1024))
+    # Frontend se aayi base64 image ko clean karna
+    img_data = request.image
+    if "," in img_data:
+        img_data = img_data.split(",")[1]
 
-        prompt = """
-        You are an elite Frontend Developer. Look at this hand-drawn wireframe/sketch and generate a complete, working HTML file using Tailwind CSS (via CDN).
-        Rules:
-        1. Return a single HTML file containing all structural tags, classes, and dummy content.
-        2. Make it beautiful, modern, and fully responsive.
-        3. Use standard Tailwind classes. Add generic placeholder images from Unsplash (e.g., https://source.unsplash.com/random/800x600) if an image box is drawn.
-        4. CRITICAL: Output ONLY the raw HTML code. Do NOT wrap it in ```html ... ``` markdown block. No explanations, no pleasantries. Return only valid HTML.
-        """
+    # AI ke liye prompt
+    prompt = """
+    You are an expert frontend developer. Convert this wireframe sketch into functional, responsive HTML and Tailwind CSS code. 
+    Return ONLY the valid HTML code starting with <!DOCTYPE html>. Do NOT include any markdown blocks like ```html or explanations.
+    """
 
-        response = model.generate_content([prompt, img])
-        
-        html_code = response.text
-        html_code = html_code.replace("```html", "").replace("```", "").strip()
-        
-        return {"success": True, "code": html_code}
+    # Ek-ek karke keys try karna
+    for index, key in enumerate(API_KEYS):
+        try:
+            print(f"Trying API Key {index + 1}...")
+            genai.configure(api_key=key)
+            
+            model = genai.GenerativeModel('gemini-3.5-flash')
+            
+            # AI ko image aur prompt bhejna
+            response = model.generate_content([
+                prompt, 
+                {"mime_type": "image/jpeg", "data": img_data}
+            ])
+            
+            # Agar AI markdown bhej de (```html ... ```), toh usko saaf karna
+            final_code = response.text.strip()
+            if final_code.startswith("```html"):
+                final_code = final_code.replace("```html", "", 1)
+            if final_code.endswith("```"):
+                final_code = final_code.rsplit("```", 1)[0].strip()
 
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+            return {"success": True, "code": final_code}
+
+        except Exception as e:
+            error_msg = str(e).lower()
+            # Agar quota limit ka error hai, toh agli key try karega
+            if "429" in error_msg or "quota" in error_msg or "exhausted" in error_msg:
+                print(f"Key {index + 1} ki limit khatam. Next key par switch kar raha hu...")
+                continue
+            else:
+                # Agar prompt ya image mein problem hai toh direct error throw karega
+                raise HTTPException(status_code=500, detail=str(e))
+    
+    # Jab saari keys exhaust ho jayein
+    raise HTTPException(status_code=429, detail="Saari API keys ki limit khatam ho chuki hai. Kal try karein!")
