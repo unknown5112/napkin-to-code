@@ -37,14 +37,19 @@
     <!-- Main Card -->
     <div class="bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-md border border-gray-700">
         
-        <!-- File Input (Hidden) -->
-        <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="previewImage(event)">
+        <!-- Hidden Inputs for Camera and Gallery -->
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="previewImage(event)">
+        <input type="file" id="galleryInput" accept="image/*" class="hidden" onchange="previewImage(event)">
 
-        <!-- Upload Buttons -->
-        <div class="flex flex-col gap-4 mb-6">
-            <button onclick="document.getElementById('imageInput').click()" 
+        <!-- Upload Buttons (Separate now) -->
+        <div class="flex flex-col gap-3 mb-6">
+            <button onclick="document.getElementById('cameraInput').click()" 
                 class="w-full py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-medium transition-colors flex items-center justify-center gap-2">
-                📸 Take a Photo / Choose Gallery
+                📸 Take a Photo
+            </button>
+            <button onclick="document.getElementById('galleryInput').click()" 
+                class="w-full py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-medium transition-colors flex items-center justify-center gap-2">
+                📁 Choose from Gallery
             </button>
         </div>
 
@@ -75,13 +80,16 @@
 
     <!-- SCRIPT SECTION -->
     <script>
-        // FIXED: Perfect Backend URL matching your FastAPI route
         const BACKEND_URL = "https://napkin-backend.onrender.com/generate-ui"; 
+        
+        // Global variable to store whichever file the user selects (from either camera or gallery)
+        let selectedFile = null;
 
         // 1. Preview Image logic
         function previewImage(event) {
             const file = event.target.files[0];
             if (file) {
+                selectedFile = file; // Save it to global variable
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById('imagePreview').src = e.target.result;
@@ -132,10 +140,7 @@
 
         // 3. API Call Logic
         async function handleGenerateUI() {
-            const fileInput = document.getElementById('imageInput');
-            const file = fileInput.files[0];
-            
-            if (!file) {
+            if (!selectedFile) {
                 alert("Please select or click a photo first!");
                 return;
             }
@@ -152,7 +157,7 @@
 
             try {
                 loadingText.innerText = "Compressing your sketch for fast upload...";
-                const base64Image = await compressImage(file);
+                const base64Image = await compressImage(selectedFile);
 
                 loadingText.innerText = "AI is analyzing your sketch and writing code...";
                 
@@ -171,7 +176,6 @@
                     throw new Error(errMsg);
                 }
 
-                // If backend caught an error but returned 200 OK
                 if (data.success === false) {
                     throw new Error(data.error);
                 }
