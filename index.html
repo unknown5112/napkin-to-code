@@ -35,13 +35,13 @@
     </div>
 
     <!-- Main Card -->
-    <div class="bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-md border border-gray-700">
+    <div class="bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-md border border-gray-700 mb-8">
         
         <!-- Hidden Inputs for Camera and Gallery -->
         <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="previewImage(event)">
         <input type="file" id="galleryInput" accept="image/*" class="hidden" onchange="previewImage(event)">
 
-        <!-- Upload Buttons (Separate now) -->
+        <!-- Upload Buttons -->
         <div class="flex flex-col gap-3 mb-6">
             <button onclick="document.getElementById('cameraInput').click()" 
                 class="w-full py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-medium transition-colors flex items-center justify-center gap-2">
@@ -72,24 +72,25 @@
 
     </div>
 
-    <!-- Results Area -->
-    <div id="resultContainer" class="hidden w-full max-w-md mt-8 p-4 bg-gray-800 rounded-xl border border-gray-700">
+    <!-- Results Area with Live Preview -->
+    <div id="resultContainer" class="hidden w-full max-w-xl mb-12 p-4 bg-gray-800 rounded-xl border border-gray-700">
         <h2 class="text-lg font-semibold mb-2">Generated Code:</h2>
-        <textarea id="codeOutput" class="w-full h-64 bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-sm border border-gray-700 outline-none" readonly></textarea>
+        <textarea id="codeOutput" class="w-full h-32 bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-sm border border-gray-700 outline-none mb-6" readonly></textarea>
+        
+        <h2 class="text-lg font-semibold mb-2">✨ Live Preview:</h2>
+        <iframe id="previewFrame" class="w-full h-96 bg-white rounded-lg border border-gray-600"></iframe>
     </div>
 
     <!-- SCRIPT SECTION -->
     <script>
         const BACKEND_URL = "https://napkin-backend.onrender.com/generate-ui"; 
-        
-        // Global variable to store whichever file the user selects (from either camera or gallery)
         let selectedFile = null;
 
         // 1. Preview Image logic
         function previewImage(event) {
             const file = event.target.files[0];
             if (file) {
-                selectedFile = file; // Save it to global variable
+                selectedFile = file;
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     document.getElementById('imagePreview').src = e.target.result;
@@ -180,7 +181,15 @@
                     throw new Error(data.error);
                 }
 
-                document.getElementById('codeOutput').value = data.code || "No code returned.";
+                const generatedHtml = data.code || "No code returned.";
+                
+                // Display Raw Code
+                document.getElementById('codeOutput').value = generatedHtml;
+
+                // Render Live Preview Inside Iframe
+                const iframe = document.getElementById('previewFrame');
+                iframe.srcdoc = generatedHtml;
+
                 resultContainer.classList.remove('hidden');
 
             } catch (error) {
