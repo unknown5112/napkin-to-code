@@ -139,8 +139,8 @@
             } else {
                 codeBtn.className = "px-4 py-2 rounded-lg font-medium text-sm transition-all bg-purple-600 text-white shadow-md";
                 previewBtn.className = "px-4 py-2 rounded-lg font-medium text-sm transition-all bg-gray-700 text-gray-300 hover:bg-gray-600";
-                codeContent.classList.remove('hidden');
-                previewContent.classList.add('hidden');
+                codeContent.classList.add('hidden');
+                previewContent.classList.remove('hidden');
             }
         }
 
@@ -223,13 +223,37 @@
 
                 let generatedHtml = data.code || "No code returned.";
                 
-                // SECURITY FIX: Prevent iframe recursion by forcing all links inside preview to open in a new tab
-                generatedHtml = generatedHtml.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
+                // ADVANCED FIX: Inject script into iframe HTML to intercept link clicks, highlight them, and prevent app reloading
+                const clickInterceptorScript = `
+                    <script>
+                        document.addEventListener('click', function(e) {
+                            const target = e.target.closest('a, button');
+                            if (target) {
+                                e.preventDefault();
+                                // Highlight effect
+                                target.style.transition = 'all 0.2s ease';
+                                target.style.outline = '3px solid #8b5cf6';
+                                target.style.backgroundColor = 'rgba(139, 92, 246, 0.2)';
+                                setTimeout(() => {
+                                    target.style.outline = '';
+                                    target.style.backgroundColor = '';
+                                }, 400);
+                            }
+                        }, true);
+                    <\/script>
+                `;
 
-                // Populate Code Textarea
-                document.getElementById('codeOutput').value = generatedHtml;
+                // Append script right before closing body or head
+                if (generatedHtml.includes('</body>')) {
+                    generatedHtml = generatedHtml.replace('</body>', clickInterceptorScript + '</body>');
+                } else {
+                    generatedHtml += clickInterceptorScript;
+                }
 
-                // Populate Live Preview Iframe safely
+                // Populate Code Textarea (original code without script so user copies clean code)
+                document.getElementById('codeOutput').value = data.code || "No code returned.";
+
+                // Populate Live Preview Iframe with interactive click-highlight script
                 const iframe = document.getElementById('previewFrame');
                 iframe.srcdoc = generatedHtml;
 
