@@ -139,8 +139,8 @@
             } else {
                 codeBtn.className = "px-4 py-2 rounded-lg font-medium text-sm transition-all bg-purple-600 text-white shadow-md";
                 previewBtn.className = "px-4 py-2 rounded-lg font-medium text-sm transition-all bg-gray-700 text-gray-300 hover:bg-gray-600";
-                codeContent.classList.add('hidden');
-                previewContent.classList.remove('hidden');
+                codeContent.classList.remove('hidden');
+                previewContent.classList.add('hidden');
             }
         }
 
@@ -262,8 +262,16 @@
                 switchTab('preview');
 
             } catch (error) {
-                console.error("Full Error:", error);
-                alert("❌ Connection Failed!\nReason: " + error.message + "\n\n💡 Make sure your backend on Render is running and live.");
+                // Developer Error Log (User ko nahi dikhega, sirf console mein aayega)
+                console.error("Developer Debug Log:", error);
+
+                // Safe and generic error messages for the user
+                const errStr = error.message.toLowerCase();
+                if (errStr.includes('failed to fetch') || errStr.includes('networkerror')) {
+                    alert("🌐 Network Error!\nPlease check your internet connection and try again.");
+                } else {
+                    alert("⚠️ Oops! Something went wrong.\nWe couldn't generate the UI this time. Please try again in a few moments.");
+                }
             } finally {
                 loaderContainer.classList.add('hidden');
                 genBtn.disabled = false;
