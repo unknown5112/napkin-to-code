@@ -3,146 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Napkin to Code 🪄</title>
+    <title>Napkin-to-Code ✨</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* CSS Loader */
+        .loader {
+            border: 4px solid #1e293b;
+            border-top: 4px solid #8b5cf6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen p-4 md:p-8 font-sans flex flex-col items-center">
-    
-    <div class="max-w-5xl w-full">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl md:text-5xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
-                Napkin-to-Code 🪄
-            </h1>
-            <p class="text-gray-400 text-base md:text-lg">Draw a wireframe, upload it, and watch AI write your code.</p>
-        </div>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
 
-        <!-- Upload Section -->
-        <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl mb-8 border border-gray-700">
-            <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden"/>
-            <input type="file" id="galleryInput" accept="image/*" class="hidden"/>
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent inline-flex items-center gap-2">
+            Napkin-to-Code 🪄
+        </h1>
+        <p class="text-gray-400 mt-2 text-sm max-w-xs mx-auto">
+            Draw a wireframe, upload it, and watch AI write your code.
+        </p>
+    </div>
 
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <button onclick="document.getElementById('cameraInput').click()" 
-                    class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-semibold transition-all">
-                    📸 Take a Photo
-                </button>
-                <button onclick="document.getElementById('galleryInput').click()" 
-                    class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-semibold transition-all">
-                    📁 Choose from Gallery
-                </button>
-            </div>
+    <!-- Main Card -->
+    <div class="bg-gray-800 p-6 rounded-2xl shadow-xl w-full max-w-md border border-gray-700">
+        
+        <!-- File Input (Hidden) -->
+        <input type="file" id="imageInput" accept="image/*" capture="environment" class="hidden" onchange="previewImage(event)">
 
-            <p id="fileNameDisplay" class="text-sm text-blue-400 text-center mb-6 hidden"></p>
-            
-            <button id="generateBtn" class="bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-4 rounded-lg font-bold w-full text-lg hover:opacity-90 transition-all">
-                Generate UI 🚀
+        <!-- Upload Buttons -->
+        <div class="flex flex-col gap-4 mb-6">
+            <button onclick="document.getElementById('imageInput').click()" 
+                class="w-full py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-medium transition-colors flex items-center justify-center gap-2">
+                📸 Take a Photo / Choose Gallery
             </button>
         </div>
 
-        <!-- Loader -->
-        <div id="loader" class="hidden text-center mb-8">
-            <div class="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-            <p class="text-blue-400 animate-pulse font-semibold">AI is analyzing your sketch and writing code...</p>
+        <!-- Image Preview Area -->
+        <div id="previewContainer" class="hidden mb-6 flex justify-center">
+            <img id="imagePreview" class="max-h-48 rounded-lg border-2 border-gray-600 object-contain">
         </div>
 
-        <!-- Output Section with TABS -->
-        <div id="outputSection" class="hidden mb-10">
-            <!-- Tab Buttons -->
-            <div class="flex space-x-2 mb-2">
-                <button id="tabPreviewBtn" class="bg-blue-600 px-6 py-2 rounded-t-lg font-bold text-white transition-colors">Live Preview</button>
-                <button id="tabCodeBtn" class="bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-t-lg font-bold text-gray-300 transition-colors">Raw Code</button>
-            </div>
+        <!-- Generate Button -->
+        <button id="generateBtn" onclick="handleGenerateUI()" 
+            class="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl font-bold text-white shadow-lg shadow-purple-500/30 transition-all opacity-50 cursor-not-allowed" disabled>
+            Generate UI 🚀
+        </button>
 
-            <!-- Live Preview Container -->
-            <div id="previewContainer" class="bg-white w-full rounded-b-xl rounded-tr-xl overflow-hidden border-4 border-gray-700 relative shadow-2xl" style="height: 70vh; min-height: 500px;">
-                <iframe id="previewFrame" class="w-full h-full bg-white"></iframe>
-            </div>
-
-            <!-- Raw Code Container -->
-            <div id="codeContainer" class="hidden bg-gray-950 w-full rounded-b-xl rounded-tr-xl border-4 border-gray-700 p-4 shadow-2xl overflow-y-auto" style="height: 70vh; min-height: 500px;">
-                <button id="copyBtn" class="float-right bg-gray-700 hover:bg-gray-600 text-xs px-3 py-1 rounded mb-2">Copy Code</button>
-                <pre><code id="codeBlock" class="text-green-400 text-sm font-mono whitespace-pre-wrap"></code></pre>
-            </div>
+        <!-- Loading State -->
+        <div id="loadingState" class="hidden mt-6 text-center">
+            <div class="loader mb-3"></div>
+            <p id="loading-text" class="text-gray-400 text-sm animate-pulse">Compressing image...</p>
         </div>
+
     </div>
 
+    <!-- Results Area -->
+    <div id="resultContainer" class="hidden w-full max-w-md mt-8 p-4 bg-gray-800 rounded-xl border border-gray-700">
+        <h2 class="text-lg font-semibold mb-2">Generated Code:</h2>
+        <textarea id="codeOutput" class="w-full h-64 bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-sm border border-gray-700 outline-none" readonly></textarea>
+    </div>
+
+    <!-- SCRIPT SECTION -->
     <script>
-        // CRITICAL: Yahan apna Uvicorn (Port 8000) wala link paste kar dena jismein end mein /generate-ui ho
-        const BACKEND_URL = "https://napkin-backend.onrender.com";
-        let selectedFile = null;
+        // FIXED: Perfect Backend URL matching your FastAPI route
+        const BACKEND_URL = "https://napkin-backend.onrender.com/generate-ui"; 
 
-        // Input Handlers
-        document.getElementById('cameraInput').addEventListener('change', e => { if(e.target.files.length) { selectedFile = e.target.files[0]; showFileName("Camera Photo Selected"); }});
-        document.getElementById('galleryInput').addEventListener('change', e => { if(e.target.files.length) { selectedFile = e.target.files[0]; showFileName(selectedFile.name); }});
-        function showFileName(text) { document.getElementById('fileNameDisplay').innerText = "Selected: " + text; document.getElementById('fileNameDisplay').classList.remove('hidden'); }
+        // 1. Preview Image logic
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('previewContainer').classList.remove('hidden');
+                    
+                    const btn = document.getElementById('generateBtn');
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btn.disabled = false;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
 
-        // Tab Switching Logic
-        const tabPreviewBtn = document.getElementById('tabPreviewBtn');
-        const tabCodeBtn = document.getElementById('tabCodeBtn');
-        const previewContainer = document.getElementById('previewContainer');
-        const codeContainer = document.getElementById('codeContainer');
+        // 2. The Lifesaver Compression Function
+        function compressImage(file, maxSize = 800) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
 
-        tabPreviewBtn.addEventListener('click', () => {
-            previewContainer.classList.remove('hidden');
-            codeContainer.classList.add('hidden');
-            tabPreviewBtn.className = "bg-blue-600 px-6 py-2 rounded-t-lg font-bold text-white transition-colors";
-            tabCodeBtn.className = "bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-t-lg font-bold text-gray-300 transition-colors";
-        });
+                        if (width > height && width > maxSize) {
+                            height *= maxSize / width;
+                            width = maxSize;
+                        } else if (height > maxSize) {
+                            width *= maxSize / height;
+                            height = maxSize;
+                        }
 
-        tabCodeBtn.addEventListener('click', () => {
-            codeContainer.classList.remove('hidden');
-            previewContainer.classList.add('hidden');
-            tabCodeBtn.className = "bg-blue-600 px-6 py-2 rounded-t-lg font-bold text-white transition-colors";
-            tabPreviewBtn.className = "bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-t-lg font-bold text-gray-300 transition-colors";
-        });
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
 
-        // Copy Code Button
-        document.getElementById('copyBtn').addEventListener('click', () => {
-            navigator.clipboard.writeText(document.getElementById('codeBlock').innerText);
-            document.getElementById('copyBtn').innerText = "Copied!";
-            setTimeout(() => document.getElementById('copyBtn').innerText = "Copy Code", 2000);
-        });
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                        resolve(compressedBase64);
+                    };
+                    img.onerror = (err) => reject(err);
+                };
+                reader.onerror = (err) => reject(err);
+            });
+        }
 
-        // Generate Logic
-        document.getElementById('generateBtn').addEventListener('click', async () => {
-            // PROFESSIONAL ENGLISH ALERTS
-            if (!selectedFile) return alert('Please upload a wireframe image first.');
-
-            document.getElementById('loader').classList.remove('hidden');
-            document.getElementById('outputSection').classList.add('hidden');
+        // 3. API Call Logic
+        async function handleGenerateUI() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
             
-            const formData = new FormData();
-            formData.append('image', selectedFile);
+            if (!file) {
+                alert("Please select or click a photo first!");
+                return;
+            }
+
+            const genBtn = document.getElementById('generateBtn');
+            const loaderContainer = document.getElementById('loadingState');
+            const loadingText = document.getElementById('loading-text');
+            const resultContainer = document.getElementById('resultContainer');
+            
+            genBtn.disabled = true;
+            genBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            resultContainer.classList.add('hidden');
+            loaderContainer.classList.remove('hidden');
 
             try {
-                const response = await fetch(BACKEND_URL, { method: 'POST', body: formData });
-                const data = await response.json();
+                loadingText.innerText = "Compressing your sketch for fast upload...";
+                const base64Image = await compressImage(file);
+
+                loadingText.innerText = "AI is analyzing your sketch and writing code...";
                 
-                if (data.success) {
-                    document.getElementById('outputSection').classList.remove('hidden');
-                    
-                    // Inject script to disable link clicks
-                    const disableLinksScript = `<script>
-                        document.addEventListener('click', function(e) {
-                            const link = e.target.closest('a');
-                            if (link) { e.preventDefault(); console.log('Link click disabled in preview.'); }
-                        });
-                    <\/script>`;
-                    
-                    document.getElementById('previewFrame').srcdoc = data.code + disableLinksScript;
-                    document.getElementById('codeBlock').innerText = data.code;
-                    tabPreviewBtn.click();
-                } else {
-                    alert("Error: " + data.error);
+                const response = await fetch(BACKEND_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ image: base64Image })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const errMsg = data.detail || data.error || data.message || `Server Error: ${response.status}`;
+                    throw new Error(errMsg);
                 }
+
+                // If backend caught an error but returned 200 OK
+                if (data.success === false) {
+                    throw new Error(data.error);
+                }
+
+                document.getElementById('codeOutput').value = data.code || "No code returned.";
+                resultContainer.classList.remove('hidden');
+
             } catch (error) {
-                // PROFESSIONAL ERROR ALERT
-                alert("Failed to connect to the backend. Please check your backend URL and ensure the server is running.");
+                console.error("Full Error:", error);
+                alert("❌ Connection Failed!\nReason: " + error.message + "\n\n💡 Make sure your backend on Render is running and live.");
             } finally {
-                document.getElementById('loader').classList.add('hidden');
+                loaderContainer.classList.add('hidden');
+                genBtn.disabled = false;
+                genBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
-        });
+        }
     </script>
 </body>
 </html>
