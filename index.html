@@ -87,14 +87,16 @@
             </button>
         </div>
 
-        <!-- Tab 1: Live Preview (Default Visible) -->
+        <!-- Tab 1: Live Preview with Fixed Aspect Ratio / Responsive Container -->
         <div id="previewTabContent" class="w-full">
-            <iframe id="previewFrame" class="w-full h-[500px] bg-white rounded-lg border border-gray-600"></iframe>
+            <div class="relative w-full overflow-hidden rounded-lg border border-gray-600 bg-white" style="height: 70vh; min-height: 450px;">
+                <iframe id="previewFrame" class="absolute inset-0 w-full h-full border-0"></iframe>
+            </div>
         </div>
 
-        <!-- Tab 2: Source Code (Hidden by Default) -->
+        <!-- Tab 2: Source Code -->
         <div id="codeTabContent" class="w-full hidden">
-            <textarea id="codeOutput" class="w-full h-[500px] bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs md:text-sm border border-gray-700 outline-none" readonly></textarea>
+            <textarea id="codeOutput" class="w-full bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs md:text-sm border border-gray-700 outline-none" style="height: 70vh; min-height: 450px;" readonly></textarea>
         </div>
 
     </div>
