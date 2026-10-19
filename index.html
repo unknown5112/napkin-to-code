@@ -221,12 +221,15 @@
                     throw new Error(data.error);
                 }
 
-                const generatedHtml = data.code || "No code returned.";
+                let generatedHtml = data.code || "No code returned.";
                 
+                // SECURITY FIX: Prevent iframe recursion by forcing all links inside preview to open in a new tab
+                generatedHtml = generatedHtml.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
+
                 // Populate Code Textarea
                 document.getElementById('codeOutput').value = generatedHtml;
 
-                // Populate Live Preview Iframe
+                // Populate Live Preview Iframe safely
                 const iframe = document.getElementById('previewFrame');
                 iframe.srcdoc = generatedHtml;
 
