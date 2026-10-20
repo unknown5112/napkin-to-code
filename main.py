@@ -73,4 +73,4 @@ async def generate_ui(request: UIRequest):
                 raise HTTPException(status_code=500, detail=str(e))
     
     # Jab saari keys exhaust ho jayein
-    raise HTTPException(status_code=429, detail="Saari API keys ki limit khatam ho chuki hai. Kal try karein!")
+    raise HTTPException(status_code=429, detail="!")

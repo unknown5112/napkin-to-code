@@ -1,0 +1,4 @@
+main.py
+requirements.txt
+__psycache__/
+.env
