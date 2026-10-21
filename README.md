@@ -1,53 +1,50 @@
-# 🪄 Napkin-to-Code
+# 🪄 Napkin-to-Code 
 
-![Build Status](https://img.shields.io/badge/Status-Live-success)
-![Python](https://img.shields.io/badge/Python-FastAPI-blue)
-![AI](https://img.shields.io/badge/AI-Google%20Gemini%203.5%20Flash-orange)
-![Frontend](https://img.shields.io/badge/Frontend-Tailwind%20CSS-teal)
+> **Turn messy back-of-the-napkin UI sketches into production-ready frontend code instantly using Multimodal Vision AI.**
 
-**Napkin-to-Code** is an AI-powered developer tool that transforms hand-drawn wireframes and paper sketches into fully functional, responsive, and production-ready HTML/Tailwind CSS code in seconds.
+[![Frontend Deployed on Vercel](https://img.shields.io/badge/Frontend-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com)
+[![Backend Hosted on Render](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render)](https://render.com)
+[![FastAPI](https://img.shields.io/badge/API-FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
+[![Tailwind CSS](https://img.shields.io/badge/Styling-TailwindCSS-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com)
 
-🔗 **[Live Demo]** *(https://unknown5112.github.io/napkin-to-code/)*
+---
+*Live Demo:* https://napkin-to-code.vercel.app/
+## 🚀 About The Project
+
+As developers, converting a rough paper wireframe or a whiteboard UI sketch into clean, responsive HTML/CSS code is a repetitive bottleneck. **Napkin-to-Code** solves this by bridging the gap between raw human imagination and executable code. 
+
+Simply snap a picture of your notebook drawing, upload it, and our serverless Vision AI pipeline analyzes the layout hierarchy, inputs, buttons, and design elements to generate clean **HTML and Tailwind CSS** code with a live real-time preview.
 
 ---
 
-## 🚀 Features
+## 🏗️ System Architecture & Tech Stack
 
-- **📸 Dual Input System:** Upload a digital sketch from your gallery or capture a paper wireframe directly using your device's camera.
-- **⚡ Blazing Fast AI:** Powered by the latest **Google Gemini 3.5 Flash** vision model, optimized with backend image compression for lightning-fast code generation.
-- **💻 Interactive Developer UI:** Features a seamless tabbed interface:
-  - **Live Preview:** Instantly view the rendered website in an isolated sandbox.
-  - **Raw Code:** Access the generated HTML/Tailwind code with a 1-click copy feature.
-- **🛡️ Bulletproof Execution:** Built-in anti-reload scripting prevents nested iframe inception bugs during preview interactions.
+This project is engineered using a modern cloud-native architecture with zero local overhead:
 
----
-
-## 🛠️ Tech Stack
-
-### Frontend (Client)
-- **HTML5 & Vanilla JavaScript** for lightweight DOM manipulation.
-- **Tailwind CSS (via CDN)** for modern, responsive styling.
-- Hosted on **GitHub Pages**.
-
-### Backend (API)
-- **Python & FastAPI** for a robust and high-speed server.
-- **Google Generative AI SDK** (Gemini 3.5 Flash) for multimodal vision-to-code capabilities.
-- **Pillow (PIL)** for on-the-fly image compression and preprocessing.
-- Hosted on **Render** (Decoupled Architecture).
+* **Frontend:** Vanilla JavaScript & Tailwind CSS, deployed globally via **Vercel**.
+* **Backend:** Python & FastAPI, hosted on **Render** for reliable server execution.
+* **AI Engine:** Google Gemini Multimodal Vision API with fine-tuned system prompting for strict UI-to-code structure translation.
+* **Environment:** Developed entirely in the cloud using **GitHub Codespaces**.
 
 ---
 
-## ⚙️ How It Works
+## ⚡ How It Works (Data Flow)
 
-1. **Upload / Capture:** The user provides a sketch of the desired UI layout.
-2. **Preprocessing:** The backend intercepts the image, compresses it to optimize API payload size, and constructs a strict prompt for the AI.
-3. **Generation:** Gemini 3.5 Flash analyzes the visual boundaries, text, and layout, writing raw HTML and standard Tailwind classes.
-4. **Rendering:** The frontend receives the response, strips any markdown formatting, and safely injects the code into the Live Preview iframe.
+1. **Capture & Upload:** The user uploads a hand-drawn interface sketch via the Vercel-hosted frontend interface.
+2. **Payload Transmission:** The image is sent securely via a POST request to the FastAPI backend hosted on Render.
+3. **Vision Analysis:** The backend parses the image using Multimodal AI, mapping components (buttons, cards, headers, forms).
+4. **Code Generation & Response:** Clean, production-ready Tailwind markup is streamed back to the client and rendered instantly.
 
 ---
 
-## 👨‍💻 Developed By
+## 🎯 Future Roadmap
+- [ ] Support multi-page component generation.
+- [ ] Export directly to React / Vue framework components.
+- [ ] User authentication & history tracking via Supabase.
 
-**Vishesh Choudhary** <br>
-*B.Tech First Year (CSE - Artificial Intelligence & Machine Learning)* <br>
-Passionate about building AI tools and exploring the intersection of web development and machine learning.
+---
+
+## 👤 Author
+**Vishesh Choudhary**
+* 1st-Year B.Tech CSE (AI & ML) Student
+* [Linkedin Profile](https://www.linkedin.com/in/vishesh-choudhary-737437441?utm_source=share_via&utm_content=profile&utm_medium=member_android)
